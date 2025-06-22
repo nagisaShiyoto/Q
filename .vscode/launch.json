@@ -12,11 +12,28 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "client",
+            "name": "eylon client",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}\\client.py",
             "console": "integratedTerminal",
+            "args": ["127.0.0.1", "1234", "eylon", "no"]
+        },
+        {
+            "name": "random client",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\client.py",
+            "console": "integratedTerminal",
+            "args": ["127.0.0.1", "1234", "random_name", "no"]
+        },
+        {
+            "name": "admin",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\client.py",
+            "console": "integratedTerminal",
+            "args": ["127.0.0.1", "1234", "admin", "*"]
         },
         {
             "name": "server",
@@ -24,6 +41,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\server.py",
             "console": "integratedTerminal",
+            "args": ["1234"]
         },
     ]
 }
