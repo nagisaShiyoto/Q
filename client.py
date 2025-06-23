@@ -23,43 +23,67 @@ def get_argues() -> Tuple[str, int, str, str]:
     args = parser.parse_args()
     return args.server_ip, args.server_port, args.name, args.room_name
 
-def connect_server(server_ip, server_port, name, room_name):
+def connect_server(server_ip, server_port, name, room_name) -> utils.user:
+    """
+    connect to the server and identify(room and username)
+
+    :param server ip: the server to connect for chatting
+    :param server_port: the port the server use
+    :param name: the wanted username
+    :param room_name: the room he wanted to connect
+    :param return: user with all the needed data
+    """
     my_socket = socket.socket()
     my_socket.connect((server_ip, server_port))
     my_socket.send(f"{name} {room_name}".encode())
     my_socket.setblocking(False)
     return utils.user(name,room_name,my_socket)
 
-def get_input(input: str):
+def get_input() -> str:
+    """
+    get user's key using non-blocking technic and print it
+
+    :param return: the key
+    """
     if msvcrt.kbhit():
-        key = msvcrt.getch().decode()
-        if key == ENTER_KEY:
-            print()
-        else:
-            print(key, end="")
-        return key
+        try:
+            key = msvcrt.getch().decode()
+            if key == ENTER_KEY:
+                print()
+            else:
+                print(key, end="")
+            return key
+        except UnicodeDecodeError:
+            print("\ncan't process last key")
+            # clearing the buffer
+            msvcrt.getch()
     return ""
 
-def handle_communication(client: utils.user):
+def handle_communication(client: utils.user) -> None:
+    """
+    handle all input\output communications between the server
+
+    :param client: the needed client info for communication
+    """
     input = ""
     logged_out = False
     while not logged_out:
         try:
-            print(client._my_socket.recv(utils.MSG_SIZE).decode())
-        
+            print(client.my_socket.recv(utils.MSG_SIZE).decode())
         # not got a massage -> check if want to send
         except BlockingIOError:
-            input += get_input(input)
-            if ENTER_KEY in input:
-                input = input[:-1]
-                client._my_socket.send(input.encode())
-                if input == utils.EXIT_MSG:
-                    logged_out = True
-                
-                input = "" 
+            pass
+        input += get_input()
+        if ENTER_KEY in input:
+            input = input[:-1]
+            client.my_socket.send(input.encode())
+            if input == utils.EXIT_MSG:
+                logged_out = True
+            
+            input = "" 
 
 
-def main():
+def main() -> None:
     server_ip, server_port, name, room_name = get_argues()
     try:
         client = connect_server(server_ip, server_port, name, room_name)
@@ -68,7 +92,7 @@ def main():
         print("server not found")
     except ConnectionResetError:
         print("server lost connection")
-        client._my_socket.close()
+        client.my_socket.close()
         
 
 if __name__ == "__main__":

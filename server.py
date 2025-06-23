@@ -1,9 +1,12 @@
 import socket
 import argparse
 import select
+import time
 from typing import List
 from collections import defaultdict
 import utils
+
+TIME_OUT = 60
 
 socket_user_dict = {}
 room_users_dict = defaultdict(list)
@@ -29,7 +32,7 @@ def accept_user(listening_socket: socket.socket) -> None:
 
     curr_user = utils.user(user_name, room_name, client_socket)
 
-    room_users_dict[curr_user._room_name].append(curr_user)
+    room_users_dict[curr_user.room_name].append(curr_user)
     socket_user_dict[client_socket] = curr_user
 
 def initialize_server(port: int) -> socket.socket:
@@ -52,9 +55,9 @@ def remove_user_from_room(user : utils.user) -> None:
 
     :param user: the user to remove
     """
-    room_users_dict[user._room_name].remove(user)
-    if len(room_users_dict[user._room_name]) == 0:
-        del room_users_dict[user._room_name]
+    room_users_dict[user.room_name].remove(user)
+    if len(room_users_dict[user.room_name]) == 0:
+        del room_users_dict[user.room_name]
 
 def close_connection(user : utils.user) -> None:
     """
@@ -62,9 +65,9 @@ def close_connection(user : utils.user) -> None:
 
     :param user: the user to close connection with
     """
-    del socket_user_dict[user._my_socket]
+    del socket_user_dict[user.my_socket]
     remove_user_from_room(user)
-    user._my_socket.close()
+    user.my_socket.close()
 
 def send_all_messages(received_massage: str, user: utils.user) -> None:
     """
@@ -74,20 +77,20 @@ def send_all_messages(received_massage: str, user: utils.user) -> None:
     :param received_massage: the message the user sent
     :param user: the user who sent the messages
     """
-    send_massage = f"{user._user_name} message: {received_massage}"
-    if user._room_name != utils.ADMIN_ROOM_NAME:
-        for to_send in room_users_dict[user._room_name]:
-            to_send._my_socket.send(send_massage.encode())
+    send_massage = f"{user.user_name} message: {received_massage}"
+    if user.room_name != utils.ADMIN_ROOM_NAME:
+        for to_send in room_users_dict[user.room_name]:
+            to_send.my_socket.send(send_massage.encode())
         
-        send_massage = f"message from room {user._room_name}, " + send_massage
+        send_massage = f"message from room {user.room_name}, " + send_massage
         for to_send in room_users_dict[utils.ADMIN_ROOM_NAME]:
-            to_send._my_socket.send(send_massage.encode())
+            to_send.my_socket.send(send_massage.encode())
 
     else:
         send_massage = "admin's massage, " + send_massage
         for user_list in room_users_dict.values():
             for to_send_user in user_list:
-                to_send_user._my_socket.send(send_massage.encode())
+                to_send_user.my_socket.send(send_massage.encode())
 
 def transfer_room(room_name: str, user: utils.user) -> None:
     """
@@ -97,7 +100,7 @@ def transfer_room(room_name: str, user: utils.user) -> None:
     :param user: the user you switch room with
     """
     remove_user_from_room(user)
-    user._room_name = room_name
+    user.room_name = room_name
     room_users_dict[room_name].append(user)
 
 def handle_read(user: utils.user) -> None:
@@ -107,7 +110,7 @@ def handle_read(user: utils.user) -> None:
     :param user: the user who sent the message
     """
     try:
-        received_message = user._my_socket.recv(utils.MSG_SIZE).decode()
+        received_message = user.my_socket.recv(utils.MSG_SIZE).decode()
         if received_message == "" or received_message == utils.EXIT_MSG:
             close_connection(user)
             return
@@ -133,15 +136,24 @@ def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
         else:
             handle_read(socket_user_dict[read_socket])
 
+def close_all_communication():
+    for to_close in socket_user_dict.keys():
+        to_close.close()
+
 def main() -> None:
     server_port = get_port()
+    print("initialize server")
     listening_socket = initialize_server(server_port)
 
+    readable_sockets = None
     socket_user_dict[listening_socket] = None
 
-    while(True):
-        readable_sockets, _, _ = select.select(socket_user_dict.keys(),[],[])
+    print("server listening...")
+    while(readable_sockets != []):    
+        readable_sockets, _, _ = select.select(socket_user_dict.keys(),[],[],TIME_OUT)
         handle_socket_interaction(readable_sockets)
-
+    
+    print("exiting")
+    close_all_communication()
 if __name__ == "__main__":
     main()
