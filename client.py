@@ -1,10 +1,19 @@
 import socket
 import argparse
 import utils
-import msvcrt
 from typing import Tuple
+import sys
 
-ENTER_KEY = "\r"
+WINDOWS = "win32"
+LINUX = "linux"
+
+if sys.platform == WINDOWS:
+    import msvcrt
+    ENTER_KEY = "\r"
+elif sys.platform == LINUX:
+    import select
+    ENTER_KEY = "\n"
+
 
 def get_argues() -> Tuple[str, int, str, str]:
     """
@@ -39,25 +48,30 @@ def connect_server(server_ip, server_port, name, room_name) -> utils.user:
     my_socket.setblocking(False)
     return utils.user(name,room_name,my_socket)
 
-def get_input() -> str:
+def get_input(input: str) -> str:
     """
     get user's key using non-blocking technic and print it
 
     :param return: the key
     """
-    if msvcrt.kbhit():
+    if sys.platform == WINDOWS and msvcrt.kbhit():
         try:
             key = msvcrt.getch().decode()
             if key == ENTER_KEY:
                 print()
             else:
                 print(key, end="")
-            return key
+            return input + key
         except UnicodeDecodeError:
             print("\ncan't process last key")
             # clearing the buffer
             msvcrt.getch()
-    return ""
+    elif sys.platform == LINUX:
+        new_input,_,_ = select.select([sys.stdin],[],[],0)
+        if new_input != []:
+            return new_input[0].readline()
+    
+    return input
 
 def handle_communication(client: utils.user) -> None:
     """
@@ -73,7 +87,7 @@ def handle_communication(client: utils.user) -> None:
         # not got a massage -> check if want to send
         except BlockingIOError:
             pass
-        input += get_input()
+        input = get_input(input)
         if ENTER_KEY in input:
             input = input[:-1]
             client.my_socket.send(input.encode())
@@ -81,7 +95,6 @@ def handle_communication(client: utils.user) -> None:
                 logged_out = True
             
             input = "" 
-
 
 def main() -> None:
     server_ip, server_port, name, room_name = get_argues()
@@ -93,7 +106,6 @@ def main() -> None:
     except ConnectionResetError:
         print("server lost connection")
         client.my_socket.close()
-        
 
 if __name__ == "__main__":
     main()
