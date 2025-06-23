@@ -1,7 +1,6 @@
 import socket
 import argparse
 import select
-import time
 from typing import List
 from collections import defaultdict
 import utils
