@@ -137,6 +137,9 @@ def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
             handle_read(socket_user_dict[read_socket])
 
 def close_all_communication():
+    """
+    closing all of the server communications
+    """
     for to_close in socket_user_dict.keys():
         to_close.close()
 
