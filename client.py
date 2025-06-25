@@ -73,6 +73,14 @@ def get_input(input: str) -> str:
     
     return input
 
+def handle_sending(input: str, client: utils.user) -> None:
+    """
+    redirect all communication options
+    """
+    client.my_socket.send(input.encode())
+    if input.startswith(utils.TRANSFER_MSG):
+        client.room_name = input.split(" ")[1]
+
 def handle_communication(client: utils.user) -> None:
     """
     handle all input\output communications between the server
@@ -90,7 +98,7 @@ def handle_communication(client: utils.user) -> None:
         input = get_input(input)
         if ENTER_KEY in input:
             input = input[:-1]
-            client.my_socket.send(input.encode())
+            handle_sending(input, client)
             if input == utils.EXIT_MSG:
                 logged_out = True
             
