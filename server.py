@@ -102,21 +102,37 @@ def transfer_room(received_message: str, user: utils.user) -> None:
     remove_user_from_room(user)
     user.room_name = room_name
     room_users_dict[room_name].append(user)
+    user.my_socket.send(received_message.encode())
+
+def send_wrong_syntax_error(received_message: str, user: utils.user) -> None:
+    """
+    sending wrong syntax error to user
+
+    :param received_message: the wrong command
+    :param user: the user to send it to
+    """
+    message = f"wrong command '{received_message}',\nto send '/' the start try '//'"
+    user.my_socket.send(message.encode())
+
+def handle_exit_command(received_message: str, user: utils.user) -> None:
+    """
+    singing out user
+
+    :param received_message: dont need it
+    :param user: the user who asked to exit
+    """
+    print(f"bye bye {user.user_name}")
+    close_connection(user)
 
 def handle_spacial_massage(user: utils.user, received_message: str):
+    handling_spacial_messages = {
+        utils.EXIT_MSG: handle_exit_command,
+        utils.TRANSFER_MSG: transfer_room,
+        utils.COMMAND_START: send_all_messages
+    }
+    command_name = received_message.split(" ")[0]
+    handling_spacial_messages.get(command_name, send_wrong_syntax_error)(received_message, user)
 
-    if received_message == utils.EXIT_MSG:
-        close_connection(user)
-
-    elif received_message.startswith(utils.TRANSFER_MSG):
-        transfer_room(received_message, user)
-        user.my_socket.send(received_message.encode())
-
-    elif received_message.startswith(utils.NORMAL_STARTING_SLASH):
-        send_all_messages(received_message[1:], user)
-    else:
-        message = f"wrong command '{received_message}',\nto send '/' the start try '//'"
-        user.my_socket.send(message.encode())
 
 def handle_read(user: utils.user) -> None:
     """
@@ -126,8 +142,8 @@ def handle_read(user: utils.user) -> None:
     """
     try:
         received_message = user.my_socket.recv(utils.MSG_SIZE).decode()
-        if received_message.startswith("/"):
-            handle_spacial_massage(user, received_message)
+        if received_message.startswith(utils.COMMAND_START):
+            handle_spacial_massage(user, received_message[1:])
         elif received_message == "":
             close_connection(user)
         else:

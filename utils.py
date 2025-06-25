@@ -2,9 +2,9 @@ import socket
 from dataclasses import dataclass
 
 MSG_SIZE = 1024
-EXIT_MSG = "/exit"
-TRANSFER_MSG = "/transfer "
-NORMAL_STARTING_SLASH = "//"
+COMMAND_START = "/"
+EXIT_MSG = "exit"
+TRANSFER_MSG = "transfer"
 ADMIN_ROOM_NAME = "*"
 ADMIN_PASSWORD = "password"
 

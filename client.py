@@ -102,7 +102,7 @@ def handle_sending(input: str, client: utils.user) -> None:
     :param input: the msg to send
     :param client: the user information
     """
-    if input.startswith(utils.TRANSFER_MSG):
+    if input.startswith(utils.COMMAND_START + utils.TRANSFER_MSG):
         transfer_room(input, client)
     else:
         client.my_socket.send(input.encode())
@@ -125,7 +125,7 @@ def handle_communication(client: utils.user) -> None:
         if ENTER_KEY in input:
             input = input[:-1]
             handle_sending(input, client)
-            if input == utils.EXIT_MSG:
+            if input == (utils.COMMAND_START + utils.EXIT_MSG):
                 logged_out = True
             
             input = "" 
