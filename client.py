@@ -76,6 +76,9 @@ def get_input(input: str) -> str:
 def handle_sending(input: str, client: utils.user) -> None:
     """
     redirect all communication options
+
+    :param input: the msg to send
+    :param client: the user information
     """
     client.my_socket.send(input.encode())
     if input.startswith(utils.TRANSFER_MSG):
