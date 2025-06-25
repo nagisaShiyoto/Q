@@ -115,12 +115,14 @@ def handle_read(user: utils.user) -> None:
             return
         elif received_message.startswith(utils.TRANSFER_MSG):
             transfer_room(received_message.split(" ")[1], user)
+        else:
+            send_all_messages(received_message, user)
     except ConnectionResetError:
         close_connection(user)
         return
     
     
-    send_all_messages(received_message, user)
+    
 
 def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
     """
@@ -157,5 +159,6 @@ def main() -> None:
     
     print("exiting")
     close_all_communication()
+
 if __name__ == "__main__":
     main()
