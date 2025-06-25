@@ -9,13 +9,13 @@ SERVER_IP = ""  # listening to all inputs
 TIME_OUT = 60
 
 def get_port() -> int:
-        """
-        getting wanted server port from the commandline
-        :param return: the wanted port
-        """
-        parser = argparse.ArgumentParser()
-        parser.add_argument('server_port', type=int, help="the port to use as the server")
-        return parser.parse_args().server_port
+    """
+    getting wanted server port from the commandline
+    :param return: the wanted port
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('server_port', type=int, help="the port to use as the server")
+    return parser.parse_args().server_port
 
 
 class Server:
@@ -152,6 +152,7 @@ class Server:
         handling_spacial_messages = {
             utils.EXIT_MSG: self._handle_exit_command,
             utils.TRANSFER_MSG: self._transfer_room,
+            utils.UNICAST_MSG: unicast_msg,
         }
         command_name = received_message.split(" ")[0]
         handling_spacial_messages.get(command_name, self._send_wrong_syntax_error)(received_message, user)
@@ -201,7 +202,11 @@ class Server:
             self._handle_socket_interaction(readable_sockets)
             readable_sockets, _, _ = select.select(self._socket_user_dict.keys(),[],[],TIME_OUT)
 
-    
+
+def unicast_msg(received_message: str, user: utils.user) -> None:
+    pass
+
+
 def main() -> None:
     main_server = Server(get_port())
     main_server.run_server()
