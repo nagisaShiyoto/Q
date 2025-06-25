@@ -33,7 +33,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\client.py",
             "console": "integratedTerminal",
-            "args": ["127.0.0.1", "1234", "admin", "*"]
+            "args": ["127.0.0.1", "1234", "admin", "*password"]
         },
         {
             "name": "server",

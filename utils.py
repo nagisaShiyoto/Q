@@ -6,6 +6,7 @@ EXIT_MSG = "/exit"
 TRANSFER_MSG = "/transfer "
 NORMAL_STARTING_SLASH = "//"
 ADMIN_ROOM_NAME = "*"
+ADMIN_PASSWORD = "password"
 
 @dataclass
 class user:

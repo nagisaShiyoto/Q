@@ -77,12 +77,12 @@ def send_all_messages(received_massage: str, user: utils.user) -> None:
     :param user: the user who sent the messages
     """
     send_massage = f"{user.user_name} message: {received_massage}"
-    if user.room_name != utils.ADMIN_ROOM_NAME:
+    if user.room_name != (utils.ADMIN_ROOM_NAME + utils.ADMIN_PASSWORD):
         for to_send in room_users_dict[user.room_name]:
             to_send.my_socket.send(send_massage.encode())
         
         send_massage = f"message from room {user.room_name}, " + send_massage
-        for to_send in room_users_dict[utils.ADMIN_ROOM_NAME]:
+        for to_send in room_users_dict[utils.ADMIN_ROOM_NAME + utils.ADMIN_PASSWORD]:
             to_send.my_socket.send(send_massage.encode())
 
     else:
@@ -91,24 +91,26 @@ def send_all_messages(received_massage: str, user: utils.user) -> None:
             for to_send_user in user_list:
                 to_send_user.my_socket.send(send_massage.encode())
 
-def transfer_room(room_name: str, user: utils.user) -> None:
+def transfer_room(received_message: str, user: utils.user) -> None:
     """
     transferring users to another room
 
-    :param room_name: the wanted room to switch to
+    :param received_message: the transfer message
     :param user: the user you switch room with
     """
+    room_name = received_message.split(" ")[1]
     remove_user_from_room(user)
     user.room_name = room_name
     room_users_dict[room_name].append(user)
 
+    
 def handle_spacial_massage(user: utils.user, received_message: str):
 
     if received_message == utils.EXIT_MSG:
         close_connection(user)
-        
+
     elif received_message.startswith(utils.TRANSFER_MSG):
-        transfer_room(received_message.split(" ")[1], user)
+        transfer_room(received_message, user)
         user.my_socket.send(received_message.encode())
 
     elif received_message.startswith(utils.NORMAL_STARTING_SLASH):
