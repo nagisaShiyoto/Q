@@ -2,6 +2,7 @@ import socket
 import argparse
 import utils
 from typing import Tuple
+import select
 import sys
 
 WINDOWS = "win32"
@@ -106,10 +107,13 @@ def handle_sending(input: str, client: utils.user) -> None:
     """
     if input.startswith(utils.TRANSFER_MSG):
         transfer_room(input, client)
+    elif input.startswith(utils.UNICAST_MSG):
+        send_unicast_msg(input, client)
     else:
         client.my_socket.send(input.encode())
 
-def create_connection(clien)
+def create_connection(client: utils.user):
+    pass
 
 def send_unicast_msg(input: str, client: utils.user):
     params = input.split(" ")
