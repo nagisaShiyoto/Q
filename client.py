@@ -93,7 +93,7 @@ def get_input(input: str) -> str:
     if sys.platform == WINDOWS:
         return input + get_windows_input(input)
     elif sys.platform == LINUX:
-        return get_windows_input(input)
+        return get_linux_input(input)
 
 def transfer_room(input: str, client: utils.user) -> None:
     """
