@@ -195,11 +195,13 @@ class Server:
         running the server
         """
         print("server listening...")
-        readable_sockets, _, _ = select.select(self._socket_user_dict.keys(),[],[],TIME_OUT)
+        readable_sockets = None
     
-        while readable_sockets:
-            self._handle_socket_interaction(readable_sockets)
+        while True:
             readable_sockets, _, _ = select.select(self._socket_user_dict.keys(),[],[],TIME_OUT)
+            self._handle_socket_interaction(readable_sockets)
+            if not readable_sockets:
+                break
 
     
 def main() -> None:
