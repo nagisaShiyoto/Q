@@ -133,7 +133,6 @@ def handle_spacial_massage(user: utils.user, received_message: str):
     command_name = received_message.split(" ")[0]
     handling_spacial_messages.get(command_name, send_wrong_syntax_error)(received_message, user)
 
-
 def handle_read(user: utils.user) -> None:
     """
     handling user message
