@@ -124,7 +124,13 @@ def handle_exit_command(received_message: str, user: utils.user) -> None:
     print(f"bye bye {user.user_name}")
     close_connection(user)
 
-def handle_spacial_massage(user: utils.user, received_message: str):
+def handle_spacial_massage(user: utils.user, received_message: str) -> None:
+    """
+    handling special messages - command messages
+
+    :param user: the user who send this messages
+    :param received_message: the message(command) of the user 
+    """
     handling_spacial_messages = {
         utils.EXIT_MSG: handle_exit_command,
         utils.TRANSFER_MSG: transfer_room,
