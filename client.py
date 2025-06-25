@@ -13,8 +13,10 @@ if sys.platform == WINDOWS:
 elif sys.platform == LINUX:
     import select
     ENTER_KEY = "\n"
-
-
+else:
+    print("unsupported system:(")
+    exit()
+    
 def get_argues() -> Tuple[str, int, str, str]:
     """
     get all the needed argument from the command line
@@ -48,30 +50,50 @@ def connect_server(server_ip, server_port, name, room_name) -> utils.user:
     my_socket.setblocking(False)
     return utils.user(name,room_name,my_socket)
 
+def get_windows_input(input: str) -> str:
+    """
+    get user's key using non-blocking technic and print it for windows
+
+    :param input: the string before him
+    :param return: the key
+    """
+    try:
+        if  msvcrt.kbhit():
+            key = msvcrt.getch().decode()
+            if key == ENTER_KEY:
+                print()
+            else:
+                print(key, end="")
+            return key
+    except UnicodeDecodeError:
+        print("\ncan't process last key")
+        # clearing the buffer
+        msvcrt.getch()
+        return ""
+    return ""
+
+def get_linux_input(input: str) -> str:
+    """
+    get user's key using non-blocking technic and print it for linux
+
+    :param input: the string before him
+    :param return: the key
+    """
+    new_input, _, _ = select.select([sys.stdin],[],[],0)
+    if new_input:
+        return new_input[0].readline()
+    return ""
+
 def get_input(input: str) -> str:
     """
     get user's key using non-blocking technic and print it
 
     :param return: the key
     """
-    if sys.platform == WINDOWS and msvcrt.kbhit():
-        try:
-            key = msvcrt.getch().decode()
-            if key == ENTER_KEY:
-                print()
-            else:
-                print(key, end="")
-            return input + key
-        except UnicodeDecodeError:
-            print("\ncan't process last key")
-            # clearing the buffer
-            msvcrt.getch()
+    if sys.platform == WINDOWS:
+        return input + get_windows_input(input)
     elif sys.platform == LINUX:
-        new_input,_,_ = select.select([sys.stdin],[],[],0)
-        if new_input != []:
-            return new_input[0].readline()
-    
-    return input
+        return get_windows_input(input)
 
 def transfer_room(input: str, client: utils.user) -> None:
     """

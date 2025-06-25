@@ -6,7 +6,7 @@ from collections import defaultdict
 import utils
 
 SERVER_IP = ""  # listening to all inputs
-TIME_OUT = 60
+TIME_OUT = 10
 
 socket_user_dict = {}
 room_users_dict = defaultdict(list)
@@ -184,13 +184,16 @@ def main() -> None:
     print("initialize server")
     listening_socket = initialize_server(server_port)
 
-    readable_sockets = None
     socket_user_dict[listening_socket] = None
 
+    
     print("server listening...")
-    while(readable_sockets != []):    
-        readable_sockets, _, _ = select.select(socket_user_dict.keys(),[],[],TIME_OUT)
+    readable_sockets,  _, _ = select.select(socket_user_dict.keys(),[],[],TIME_OUT)
+    
+    while readable_sockets:
         handle_socket_interaction(readable_sockets)
+        readable_sockets, _, _ = select.select(socket_user_dict.keys(),[],[],TIME_OUT)
+        
     
     print("exiting")
     close_all_communication()
