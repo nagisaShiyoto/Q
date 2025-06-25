@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 MSG_SIZE = 1024
 COMMAND_START = "/"
+SLASH_START = "//"
 EXIT_MSG = "exit"
 TRANSFER_MSG = "transfer"
 ADMIN_ROOM_NAME = "*"

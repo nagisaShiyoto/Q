@@ -85,15 +85,24 @@ def transfer_room(input: str, client: utils.user) -> None:
 
     # waiting for response
     client.my_socket.setblocking(True)
-    input = client.my_socket.recv(utils.MSG_SIZE).decode()
+    response = client.my_socket.recv(utils.MSG_SIZE).decode()
     client.my_socket.setblocking(False)
     
-    if input.startswith(utils.TRANSFER_MSG):
-        client.room_name = input.split(" ")[1]
+    if response.startswith(utils.TRANSFER_MSG):
+        client.room_name = response.split(" ")[1]
         print(f"transferred to room {client.room_name}")
     else:
         print("could not transfer rooms:")
-        print(input)
+        print(response)
+
+def send_message(input: str, client: utils.user) -> None:
+    """
+    sending message to server
+
+    :param input: message to send
+    :param client: all the needed user info
+    """
+    client.my_socket.send(input.encode())
 
 def handle_sending(input: str, client: utils.user) -> None:
     """
@@ -102,10 +111,12 @@ def handle_sending(input: str, client: utils.user) -> None:
     :param input: the msg to send
     :param client: the user information
     """
-    if input.startswith(utils.COMMAND_START + utils.TRANSFER_MSG):
-        transfer_room(input, client)
-    else:
-        client.my_socket.send(input.encode())
+    massage_redirector = {
+        utils.COMMAND_START + utils.TRANSFER_MSG: transfer_room
+    }
+
+    first_argument = input.split(" ")[0]
+    massage_redirector.get(first_argument, send_message)(input, client)
 
 def handle_communication(client: utils.user) -> None:
     """
