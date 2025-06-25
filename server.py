@@ -124,10 +124,14 @@ def handle_exit_command(received_message: str, user: utils.user) -> None:
     print(f"bye bye {user.user_name}")
     close_connection(user)
 
+def unicast_msg(received_message: str, user: utils.user) -> None:
+    pass
+
 def handle_spacial_massage(user: utils.user, received_message: str):
     handling_spacial_messages = {
         utils.EXIT_MSG: handle_exit_command,
         utils.TRANSFER_MSG: transfer_room,
+        utils.UNICAST_MSG: unicast_msg
     }
     command_name = received_message.split(" ")[0]
     handling_spacial_messages.get(command_name, send_wrong_syntax_error)(received_message, user)

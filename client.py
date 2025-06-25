@@ -121,7 +121,6 @@ def handle_sending(input: str, client: utils.user) -> None:
     first_argument = input.split(" ")[0]
     massage_redirector.get(first_argument, send_message)(input, client)
 
-
 def create_connection(client: utils.user) -> None:
     """
     getting message in this format:
@@ -140,7 +139,6 @@ def create_connection(client: utils.user) -> None:
     new_socket.bind((ip, port))
     user_unicast_sockets[user_name] = new_socket
 
-
 def send_unicast_msg(input: str, client: utils.user):
     params = input.split(" ")
     if len(params) < utils.UNICAST_PARAMS_AMOUNT:
@@ -148,19 +146,19 @@ def send_unicast_msg(input: str, client: utils.user):
         return
     send_to_name = params[1]
     message_data = " ".join(params[1:])
-    to_send = f"{client.user_name} sent privately: {message_data}"
+    to_send = f"{client.user_name} {message_data}"
     # socket does not already exists
     if send_to_name not in user_unicast_sockets:
         client.my_socket.send(input.encode())
         create_connection(client)
-        
+
     user_unicast_sockets[send_to_name].send(to_send.encode())
 
 def format_private_message(message: str) -> str:
     """
     formatting a private message
 
-    :param message: the private message in this format: <message> <data>
+    :param message: the private message in this format: <user's name> <data>
     :param return: the formatted message
     """
     first_space = message.find(" ")
