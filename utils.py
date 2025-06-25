@@ -2,6 +2,8 @@ import socket
 MSG_SIZE = 1024
 EXIT_MSG = "/exit"
 TRANSFER_MSG = "/transfer "
+UNICAST_MSG = "/unicast "
+UNICAST_PARAMS_AMOUNT = 3
 ADMIN_ROOM_NAME = "*"
 class user:
     # create the struct of user, with all the needed data

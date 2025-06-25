@@ -115,6 +115,8 @@ def handle_read(user: utils.user) -> None:
             return
         elif received_message.startswith(utils.TRANSFER_MSG):
             transfer_room(received_message.split(" ")[1], user)
+        elif received_message.startswith(utils.UNICAST_MSG):
+            
         else:
             send_all_messages(received_message, user)
     except ConnectionResetError:
