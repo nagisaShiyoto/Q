@@ -111,7 +111,6 @@ def handle_spacial_massage(user: utils.user, received_message: str):
     elif received_message.startswith(utils.TRANSFER_MSG):
         transfer_room(received_message, user)
         user.my_socket.send(received_message.encode())
-
     elif received_message.startswith(utils.NORMAL_STARTING_SLASH):
         send_all_messages(received_message[1:], user)
     else:

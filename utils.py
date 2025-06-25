@@ -5,6 +5,8 @@ MSG_SIZE = 1024
 EXIT_MSG = "/exit"
 TRANSFER_MSG = "/transfer "
 NORMAL_STARTING_SLASH = "//"
+UNICAST_MSG = "/unicast "
+UNICAST_PARAMS_AMOUNT = 3
 ADMIN_ROOM_NAME = "*"
 ADMIN_PASSWORD = "password"
 
