@@ -103,7 +103,6 @@ def transfer_room(received_message: str, user: utils.user) -> None:
     user.room_name = room_name
     room_users_dict[room_name].append(user)
 
-    
 def handle_spacial_massage(user: utils.user, received_message: str):
 
     if received_message == utils.EXIT_MSG:
@@ -118,8 +117,6 @@ def handle_spacial_massage(user: utils.user, received_message: str):
     else:
         message = f"wrong command '{received_message}',\nto send '/' the start try '//'"
         user.my_socket.send(message.encode())
-        
-
 
 def handle_read(user: utils.user) -> None:
     """
@@ -138,9 +135,6 @@ def handle_read(user: utils.user) -> None:
     except ConnectionResetError:
         close_connection(user)
         return
-    
-    
-    
 
 def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
     """
