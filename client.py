@@ -75,7 +75,6 @@ def get_input(input: str) -> str:
     
     return input
 
-
 def transfer_room(input: str, client: utils.user) -> None:
     """
     transferring user room
@@ -112,7 +111,7 @@ def handle_sending(input: str, client: utils.user) -> None:
     else:
         client.my_socket.send(input.encode())
 
-def create_connection(client: utils.user):
+def create_connection(client: utils.user, ):
     pass
 
 def send_unicast_msg(input: str, client: utils.user):
@@ -120,14 +119,15 @@ def send_unicast_msg(input: str, client: utils.user):
     if len(params) < utils.UNICAST_PARAMS_AMOUNT:
         print("not enough parameters")
         return
-    name = params[1]
-    to_send = f"{client.user_name} sent privately: {params[1:]}"
+    send_to_name = params[1]
+    message_data = " ".join(params[1:])
+    to_send = f"{client.user_name} sent privately: {message_data}"
     # socket does not already exists
-    if name not in user_unicast_sockets:
+    if send_to_name not in user_unicast_sockets:
         client.my_socket.send(input.encode())
         create_connection
         pass
-    user_unicast_sockets[name].send(to_send.encode())
+    user_unicast_sockets[send_to_name].send(to_send.encode())
 
 def handle_communication(client: utils.user) -> None:
     """
