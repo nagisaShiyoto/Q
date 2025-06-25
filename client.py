@@ -2,6 +2,7 @@ import socket
 import argparse
 import utils
 from typing import Tuple
+import select
 import sys
 
 WINDOWS = "win32"
@@ -14,6 +15,7 @@ elif sys.platform == LINUX:
     import select
     ENTER_KEY = "\n"
 
+user_unicast_sockets = {}
 
 def get_argues() -> Tuple[str, int, str, str]:
     """
@@ -73,6 +75,7 @@ def get_input(input: str) -> str:
     
     return input
 
+
 def transfer_room(input: str, client: utils.user) -> None:
     """
     transferring user room
@@ -104,8 +107,27 @@ def handle_sending(input: str, client: utils.user) -> None:
     """
     if input.startswith(utils.COMMAND_START + utils.TRANSFER_MSG):
         transfer_room(input, client)
+    elif input.startswith(utils.UNICAST_MSG):
+        send_unicast_msg(input, client)
     else:
         client.my_socket.send(input.encode())
+
+def create_connection(client: utils.user):
+    pass
+
+def send_unicast_msg(input: str, client: utils.user):
+    params = input.split(" ")
+    if len(params) < utils.UNICAST_PARAMS_AMOUNT:
+        print("not enough parameters")
+        return
+    name = params[1]
+    to_send = f"{client.user_name} sent privately: {params[1:]}"
+    # socket does not already exists
+    if name not in user_unicast_sockets:
+        client.my_socket.send(input.encode())
+        create_connection
+        pass
+    user_unicast_sockets[name].send(to_send.encode())
 
 def handle_communication(client: utils.user) -> None:
     """
