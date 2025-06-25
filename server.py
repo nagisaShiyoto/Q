@@ -5,6 +5,7 @@ from typing import List
 from collections import defaultdict
 import utils
 
+SERVER_IP = ""  # listening to all inputs
 TIME_OUT = 60
 
 socket_user_dict = {}
@@ -41,7 +42,6 @@ def initialize_server(port: int) -> socket.socket:
     :param port: the server's listening port
     :param return: a listening socket
     """
-    SERVER_IP = ""  # listening to all inputs
     listening_socket = socket.socket()
     address =  (SERVER_IP, port)
     listening_socket.bind(address)
@@ -77,12 +77,12 @@ def send_all_messages(received_massage: str, user: utils.user) -> None:
     :param user: the user who sent the messages
     """
     send_massage = f"{user.user_name} message: {received_massage}"
-    if user.room_name != utils.ADMIN_ROOM_NAME:
+    if user.room_name != (utils.ADMIN_ROOM_NAME + utils.ADMIN_PASSWORD):
         for to_send in room_users_dict[user.room_name]:
             to_send.my_socket.send(send_massage.encode())
         
         send_massage = f"message from room {user.room_name}, " + send_massage
-        for to_send in room_users_dict[utils.ADMIN_ROOM_NAME]:
+        for to_send in room_users_dict[utils.ADMIN_ROOM_NAME + utils.ADMIN_PASSWORD]:
             to_send.my_socket.send(send_massage.encode())
 
     else:
@@ -91,16 +91,31 @@ def send_all_messages(received_massage: str, user: utils.user) -> None:
             for to_send_user in user_list:
                 to_send_user.my_socket.send(send_massage.encode())
 
-def transfer_room(room_name: str, user: utils.user) -> None:
+def transfer_room(received_message: str, user: utils.user) -> None:
     """
     transferring users to another room
 
-    :param room_name: the wanted room to switch to
+    :param received_message: the transfer message
     :param user: the user you switch room with
     """
+    room_name = received_message.split(" ")[1]
     remove_user_from_room(user)
     user.room_name = room_name
     room_users_dict[room_name].append(user)
+
+def handle_spacial_massage(user: utils.user, received_message: str):
+
+    if received_message == utils.EXIT_MSG:
+        close_connection(user)
+
+    elif received_message.startswith(utils.TRANSFER_MSG):
+        transfer_room(received_message, user)
+        user.my_socket.send(received_message.encode())
+    elif received_message.startswith(utils.NORMAL_STARTING_SLASH):
+        send_all_messages(received_message[1:], user)
+    else:
+        message = f"wrong command '{received_message}',\nto send '/' the start try '//'"
+        user.my_socket.send(message.encode())
 
 def handle_read(user: utils.user) -> None:
     """
@@ -110,21 +125,15 @@ def handle_read(user: utils.user) -> None:
     """
     try:
         received_message = user.my_socket.recv(utils.MSG_SIZE).decode()
-        if received_message == "" or received_message == utils.EXIT_MSG:
+        if received_message.startswith("/"):
+            handle_spacial_massage(user, received_message)
+        elif received_message == "":
             close_connection(user)
-            return
-        elif received_message.startswith(utils.TRANSFER_MSG):
-            transfer_room(received_message.split(" ")[1], user)
-        elif received_message.startswith(utils.UNICAST_MSG):
-            
         else:
             send_all_messages(received_message, user)
     except ConnectionResetError:
         close_connection(user)
         return
-    
-    
-    
 
 def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
     """
@@ -134,7 +143,7 @@ def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
     """
     for read_socket in readable_sockets:
         users_socket = socket_user_dict[read_socket]
-        if(users_socket == None):
+        if users_socket is None:
             users_socket = accept_user(read_socket)
         else:
             handle_read(socket_user_dict[read_socket])

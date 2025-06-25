@@ -74,6 +74,41 @@ def get_input(input: str) -> str:
     
     return input
 
+
+def transfer_room(input: str, client: utils.user) -> None:
+    """
+    transferring user room
+
+    :param input: the msg with transfer info
+    :param client: the user information
+    """
+
+    client.my_socket.send(input.encode())
+
+    # waiting for response
+    client.my_socket.setblocking(True)
+    input = client.my_socket.recv(utils.MSG_SIZE).decode()
+    client.my_socket.setblocking(False)
+    
+    if input.startswith(utils.TRANSFER_MSG):
+        client.room_name = input.split(" ")[1]
+        print(f"transferred to room {client.room_name}")
+    else:
+        print("could not transfer rooms:")
+        print(input)
+
+def handle_sending(input: str, client: utils.user) -> None:
+    """
+    redirect all communication options
+
+    :param input: the msg to send
+    :param client: the user information
+    """
+    if input.startswith(utils.TRANSFER_MSG):
+        transfer_room(input, client)
+    else:
+        client.my_socket.send(input.encode())
+
 def create_connection(clien)
 
 def send_unicast_msg(input: str, client: utils.user):
@@ -89,21 +124,6 @@ def send_unicast_msg(input: str, client: utils.user):
         create_connection
         pass
     user_unicast_sockets[name].send(to_send.encode())
-
-
-
-def handle_sending(input: str, client: utils.user) -> None:
-    """
-    redirect all communication options
-    
-    :param input: the msg to send
-    :param client: the user information
-    """
-    if input.startswith(utils.TRANSFER_MSG):
-        client.room_name = input.split(" ")[1]
-        client.my_socket.send(input.encode())
-    elif input.startswith(utils.UNICAST_MSG):
-
 
 def handle_communication(client: utils.user) -> None:
     """
