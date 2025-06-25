@@ -1,7 +1,7 @@
 import socket
 import argparse
 import utils
-from typing import Tuple
+from typing import Tuple, List
 import select
 import sys
 
@@ -48,6 +48,7 @@ def connect_server(server_ip, server_port, name, room_name) -> utils.user:
     my_socket.connect((server_ip, server_port))
     my_socket.send(f"{name} {room_name}".encode())
     my_socket.setblocking(False)
+    user_unicast_sockets["server"] = my_socket
     return utils.user(name,room_name,my_socket)
 
 def get_input(input: str) -> str:
@@ -87,15 +88,24 @@ def transfer_room(input: str, client: utils.user) -> None:
 
     # waiting for response
     client.my_socket.setblocking(True)
-    input = client.my_socket.recv(utils.MSG_SIZE).decode()
+    response = client.my_socket.recv(utils.MSG_SIZE).decode()
     client.my_socket.setblocking(False)
     
-    if input.startswith(utils.TRANSFER_MSG):
-        client.room_name = input.split(" ")[1]
+    if response.startswith(utils.TRANSFER_MSG):
+        client.room_name = response.split(" ")[1]
         print(f"transferred to room {client.room_name}")
     else:
         print("could not transfer rooms:")
-        print(input)
+        print(response)
+
+def send_message(input: str, client: utils.user) -> None:
+    """
+    sending message to server
+
+    :param input: message to send
+    :param client: all the needed user info
+    """
+    client.my_socket.send(input.encode())
 
 def handle_sending(input: str, client: utils.user) -> None:
     """
@@ -104,15 +114,32 @@ def handle_sending(input: str, client: utils.user) -> None:
     :param input: the msg to send
     :param client: the user information
     """
-    if input.startswith(utils.COMMAND_START + utils.TRANSFER_MSG):
-        transfer_room(input, client)
-    elif input.startswith(utils.UNICAST_MSG):
-        send_unicast_msg(input, client)
-    else:
-        client.my_socket.send(input.encode())
+    massage_redirector = {
+        utils.COMMAND_START + utils.TRANSFER_MSG: transfer_room
+    }
 
-def create_connection(client: utils.user, ):
-    pass
+    first_argument = input.split(" ")[0]
+    massage_redirector.get(first_argument, send_message)(input, client)
+
+
+def create_connection(client: utils.user) -> None:
+    """
+    getting message in this format:
+    <user_name> <ip> <port>
+    and creating a udp socket connection
+
+    :param input: my user info
+    """
+    client.my_socket.setblocking(True)
+    user_data_msg = client.my_socket.recv(utils.MSG_SIZE)
+    client.my_socket.setblocking(True)
+
+
+    user_name, ip, port = user_data_msg.split(" ")
+    new_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    new_socket.bind((ip, port))
+    user_unicast_sockets[user_name] = new_socket
+
 
 def send_unicast_msg(input: str, client: utils.user):
     params = input.split(" ")
@@ -125,9 +152,34 @@ def send_unicast_msg(input: str, client: utils.user):
     # socket does not already exists
     if send_to_name not in user_unicast_sockets:
         client.my_socket.send(input.encode())
-        create_connection
-        pass
+        create_connection(client)
+        
     user_unicast_sockets[send_to_name].send(to_send.encode())
+
+def format_private_message(message: str) -> str:
+    """
+    formatting a private message
+
+    :param message: the private message in this format: <message> <data>
+    :param return: the formatted message
+    """
+    first_space = message.find(" ")
+    name = message[:first_space]
+    message_data = message[first_space:]
+    return f"{name} sent privately: {message_data}"
+
+def handle_reading_sockets(readable_sockets: List[socket.socket], user: utils.user) -> None:
+    """
+    handling readable sockets
+
+    :param readable_sockets: all the readable sockets
+    """
+    for to_read in readable_sockets:
+        message = to_read.recv(utils.MSG_SIZE).decode()
+        if to_read is user.my_socket:
+            print(message)
+        else:
+            print(format_private_message(message))
 
 def handle_communication(client: utils.user) -> None:
     """
@@ -138,11 +190,15 @@ def handle_communication(client: utils.user) -> None:
     input = ""
     logged_out = False
     while not logged_out:
+
+
         try:
-            print(client.my_socket.recv(utils.MSG_SIZE).decode())
-        # not got a massage -> check if want to send
+            readable_sockets, _, _ = select.select(user_unicast_sockets.values(),[],[],0)
+            handle_reading_sockets(readable_sockets)
         except BlockingIOError:
             pass
+
+
         input = get_input(input)
         if ENTER_KEY in input:
             input = input[:-1]

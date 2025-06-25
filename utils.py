@@ -2,8 +2,8 @@ import socket
 from dataclasses import dataclass
 
 MSG_SIZE = 1024
-
 COMMAND_START = "/"
+SLASH_START = "//"
 EXIT_MSG = "exit"
 TRANSFER_MSG = "transfer"
 UNICAST_MSG = "unicast "

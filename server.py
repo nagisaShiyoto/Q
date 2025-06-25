@@ -128,7 +128,6 @@ def handle_spacial_massage(user: utils.user, received_message: str):
     handling_spacial_messages = {
         utils.EXIT_MSG: handle_exit_command,
         utils.TRANSFER_MSG: transfer_room,
-        utils.COMMAND_START: send_all_messages
     }
     command_name = received_message.split(" ")[0]
     handling_spacial_messages.get(command_name, send_wrong_syntax_error)(received_message, user)
@@ -141,7 +140,10 @@ def handle_read(user: utils.user) -> None:
     """
     try:
         received_message = user.my_socket.recv(utils.MSG_SIZE).decode()
-        if received_message.startswith(utils.COMMAND_START):
+        #normal message
+        if received_message.startswith(utils.SLASH_START):
+            send_all_messages(received_message[1:], user)
+        elif received_message.startswith(utils.COMMAND_START):
             handle_spacial_massage(user, received_message[1:])
         elif received_message == "":
             close_connection(user)
@@ -164,7 +166,7 @@ def handle_socket_interaction(readable_sockets:List[socket.socket]) -> None:
         else:
             handle_read(socket_user_dict[read_socket])
 
-def close_all_communication():
+def close_all_communication() -> None:
     """
     closing all of the server communications
     """
